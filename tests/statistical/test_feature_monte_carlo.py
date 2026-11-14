@@ -123,7 +123,8 @@ def test_novelty_check_rarely_fires_on_a_stable_effect():
     sims = 400
     results = [nv.assess_novelty(_daily_effects(rng, [0.02] * 14, 500)) for _ in range(sims)]
     decay = sum(r.decay_detected for r in results) / sims
-    any_trend = sum(r.decay_detected or r.growth_detected for r in results) / sims
+    any_trend = sum(r.decay_detected or r.growth_detected or r.reversal_detected
+                    for r in results) / sims
     assert any_trend <= _upper(0.05, sims, 0.01)  # two-sided trend test at 5%
     assert decay <= _upper(0.025, sims, 0.01)  # only one direction is a novelty warning
 

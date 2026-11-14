@@ -138,6 +138,7 @@ class NoveltyResult(Model):
     late_std_error: float | None = None
     decay_detected: bool = False
     growth_detected: bool = False
+    reversal_detected: bool = False
     message: str
 
 

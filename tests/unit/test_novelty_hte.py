@@ -77,6 +77,22 @@ def test_a_growing_effect_is_reported_but_is_not_a_novelty_warning():
     assert diag.passed and diag.severity == "info" and "understate" in res.message
 
 
+def test_a_trend_through_zero_is_a_reversal_unless_the_overshoot_is_small():
+    # from -0.04 to +0.03: the effect changed sign; that is not "fading towards zero"
+    flip = nv.assess_novelty(_periods([-0.04 + 0.01 * i for i in range(8)]))
+    assert flip.reversal_detected and not flip.decay_detected and not flip.growth_detected
+    assert "changes sign" in flip.message and nv.novelty_diagnostic(flip).passed
+    # from +0.07 to -0.01: an effect that fades and slightly overshoots is still a decay
+    fade = nv.assess_novelty(_periods([0.07 - 0.01 * i for i in range(9)]))
+    assert fade.decay_detected and not fade.reversal_detected
+    assert abs(fade.fitted_end) <= nv.OVERSHOOT_RATIO * abs(fade.fitted_start)
+    # just inside the limit (start +0.040, end -0.019) is fading; well beyond it is not
+    inside = nv.assess_novelty(_periods([0.04 - 0.0098 * i for i in range(7)]))
+    assert inside.decay_detected
+    past = nv.assess_novelty(_periods([0.04 - 0.01 * i for i in range(8)]))
+    assert past.reversal_detected and not past.decay_detected
+
+
 def test_a_stable_effect_passes_without_claiming_absence():
     res = nv.assess_novelty(_periods([0.02, 0.021, 0.019, 0.02, 0.022, 0.018]))
     assert res.assessed and not res.decay_detected and not res.growth_detected

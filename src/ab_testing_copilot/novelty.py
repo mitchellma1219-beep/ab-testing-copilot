@@ -20,6 +20,9 @@ from ab_testing_copilot.models import Diagnostic, NoveltyResult, PeriodEffect
 MIN_PERIODS = 5
 MIN_UNITS_PER_ARM = 50
 MAX_PERIODS = 400
+# A fitted line that ends on the other side of zero still counts as fading when it overshoots
+# by less than this share of its starting size; beyond that the effect has changed sign.
+OVERSHOOT_RATIO = 0.5
 CAVEAT = (
     "This is a warning, not proof: a changing mix of units over time, seasonality or chance "
     "produce the same pattern."
@@ -86,7 +89,11 @@ def assess_novelty(
     """Test whether per-period treatment effects move towards zero over time.
 
     ``periods`` must hold independent estimates (different units in each period). ``index`` is
-    the time since the first exposure, in days.
+    the time since the first exposure, in days. A significant trend is one of three things:
+    *decay* (the fitted effect ends closer to zero on the same side, or overshoots zero by at
+    most ``OVERSHOOT_RATIO`` of its starting size), which is the novelty warning; *growth*
+    (same side, larger at the end); or a *reversal* (the sign changes). Only decay is a
+    warning; the other two are reported for information.
     """
     if not 0 < alpha < 1:
         raise ValueError("alpha must be in (0, 1)")
@@ -111,8 +118,11 @@ def assess_novelty(
     early, early_se = _pooled(usable[:half])
     late, late_se = _pooled(usable[len(usable) - half:])
     significant = p_value < alpha
-    decay = significant and abs(end) < abs(start)
-    growth = significant and not decay
+    same_side = start * end >= 0
+    decay = significant and (abs(end) < abs(start) if same_side
+                             else abs(end) <= OVERSHOOT_RATIO * abs(start))
+    reversal = significant and not same_side and not decay
+    growth = significant and same_side and not decay
     evidence = (
         f"slope {slope:+.4g} per day (SE {slope_se:.3g}, t = {stat:.2f} on {dof} df, "
         f"p = {p_value:.3g}) over {len(usable)} periods; fitted effect {start:+.4g} at the "
@@ -126,6 +136,9 @@ def assess_novelty(
     elif growth:
         msg = ("The treatment effect grows in size over time, so the pooled estimate may "
                f"understate the lasting effect. Evidence: {evidence} {CAVEAT}")
+    elif reversal:
+        msg = ("The treatment effect changes sign over time, so the pooled estimate averages "
+               f"opposite effects. Evidence: {evidence} {CAVEAT}")
     else:
         msg = (f"No clear time trend in the treatment effect: {evidence} The check has limited "
                "power, so this does not rule out a novelty effect.")
@@ -138,7 +151,7 @@ def assess_novelty(
         rows_without_date=rows_without_date, slope=slope, slope_std_error=slope_se,
         statistic=stat, dof=dof, p_value=p_value, fitted_start=start, fitted_end=end,
         early_effect=early, early_std_error=early_se, late_effect=late, late_std_error=late_se,
-        decay_detected=decay, growth_detected=growth, message=msg,
+        decay_detected=decay, growth_detected=growth, reversal_detected=reversal, message=msg,
     )
 
 
