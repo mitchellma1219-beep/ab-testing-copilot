@@ -345,23 +345,32 @@ def period_index(dates: pd.Series, bin_days: int = 1) -> tuple[pd.Series, dict[i
     Numeric columns are read as a day count. Text must be ISO-8601 (``YYYY-MM-DD`` with an
     optional time): ambiguous formats such as ``03/04/2026`` are not guessed at.
     """
+    nothing = pd.Series(np.nan, index=dates.index, dtype=np.float64)
     if pd.api.types.is_bool_dtype(dates):
-        return pd.Series(np.nan, index=dates.index), {}
+        return nothing, {}
+    epoch_day: float | None = None
     if pd.api.types.is_numeric_dtype(dates):
-        values = dates.astype(np.float64).where(np.isfinite(dates.astype(np.float64)))
-        days = np.floor(values - values.min())
-        labels = {}
+        values = dates.astype(np.float64)
+        days = np.floor(values.where(np.isfinite(values)))
     else:
-        parsed = pd.to_datetime(dates, errors="coerce", utc=True, format="ISO8601")
-        day = parsed.dt.floor("D")
-        start = day.min()
-        days = (day - start).dt.days.astype(np.float64)
-        labels = {} if pd.isna(start) else {"start": start}
-    idx = np.floor(days / bin_days) * bin_days
+        try:
+            parsed = pd.to_datetime(dates, errors="coerce", utc=True, format="ISO8601")
+            seconds = parsed.dt.tz_localize(None).astype("datetime64[s]").astype(np.int64)
+        except (ValueError, TypeError, OverflowError):  # objects that are not dates at all
+            return nothing, {}
+        # whole days since 1970-01-01 as plain numbers: no overflow for far-apart dates
+        days = pd.Series(np.floor(seconds.to_numpy() / 86400.0), index=dates.index).where(
+            parsed.notna())
+    if days.notna().sum() == 0:
+        return nothing, {}
+    first = float(days.min())
+    if not pd.api.types.is_numeric_dtype(dates):
+        epoch_day = first
+    idx = np.floor((days - first) / bin_days) * bin_days
     names: dict[int, str] = {}
     for value in sorted(idx.dropna().unique()):
         key = int(value)
-        names[key] = (str((labels["start"] + pd.Timedelta(days=key)).date()) if labels
+        names[key] = (str(np.datetime64(int(epoch_day) + key, "D")) if epoch_day is not None
                       else f"day {key}")
     return idx, names
 
@@ -423,7 +432,9 @@ def _segments(
 ) -> tuple[SegmentAnalysis | None, str | None]:
     """Exploratory per-segment effects of the primary metric."""
     spec = config.primary
-    seg_c, seg_t = fr.control[col], fr.treatment[col]
+    # Labels are compared as text so that mixed types (1, "1", 2.0) cannot break the grouping.
+    seg_c, seg_t = (s.where(s.isna(), s.astype(str)) for s in (fr.control[col],
+                                                               fr.treatment[col]))
     n_missing = int(seg_c.isna().sum() + seg_t.isna().sum())
     counts = pd.DataFrame({"c": seg_c.value_counts(), "t": seg_t.value_counts()}).fillna(0)
     if len(counts) < 2:

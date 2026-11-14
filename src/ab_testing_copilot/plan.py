@@ -101,6 +101,10 @@ class PlanRequest(BaseModel):
             raise ValueError("baseline must be finite")
         if self.std_dev is not None and not self.std_dev > 0:
             raise ValueError("std_dev must be > 0")
+        if self.metric_type == "binary" and not 0 < self.baseline < 1:
+            raise ValueError("the baseline of a binary metric must lie inside (0, 1)")
+        if self.mde_is_relative and not self.baseline > 0:
+            raise ValueError("a relative MDE needs a baseline > 0")
         if self.metric_type == "continuous" and self.std_dev is None:
             raise ValueError("a continuous metric needs its standard deviation (std_dev)")
         if self.metric_type == "binary" and self.std_dev is not None:
@@ -173,12 +177,7 @@ def build_plan(request: PlanRequest) -> ExperimentPlan:
     """Compute sample size, duration, boundaries, decision rule and checklist for a request."""
     r = request
     sign = 1.0 if r.higher_is_better else -1.0
-    if r.mde_is_relative:
-        if not r.baseline > 0:
-            raise ValueError("a relative MDE needs a baseline > 0")
-        absolute = r.mde * r.baseline
-    else:
-        absolute = r.mde
+    absolute = r.mde * r.baseline if r.mde_is_relative else r.mde
     ratio = r.treatment_share / (1 - r.treatment_share)
     if r.metric_type == "binary":
         fixed = design.sample_size_for_proportions(r.baseline, sign * absolute, r.alpha, r.power,

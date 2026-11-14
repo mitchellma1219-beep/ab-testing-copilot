@@ -319,8 +319,11 @@ def _plan_guardrail(text: str) -> GuardrailPlan:
         margin = float(parts[3])
     except ValueError as exc:
         raise ValueError(f"guardrail '{text}': the margin must be a number") from exc
-    return GuardrailPlan(name=parts[0], type=parts[1], higher_is_better=parts[2] == "higher",
-                         margin=margin)
+    try:
+        return GuardrailPlan(name=parts[0], type=parts[1],
+                             higher_is_better=parts[2] == "higher", margin=margin)
+    except ValidationError as exc:
+        raise ValueError(f"guardrail '{text}': {_validation_message(exc)}") from exc
 
 
 def _plan(a: argparse.Namespace) -> str:

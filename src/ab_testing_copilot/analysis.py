@@ -137,7 +137,12 @@ def compare_means(
         raise ValueError("alpha must be in (0, 1)")
     c, t = _clean(control, "control"), _clean(treatment, "treatment")
     mc, mt = float(c.mean()), float(t.mean())
-    vc, vt = float(c.var(ddof=1)), float(t.var(ddof=1))
+    with np.errstate(over="ignore", invalid="ignore"):
+        vc, vt = float(c.var(ddof=1)), float(t.var(ddof=1))
+    if not (np.isfinite(vc) and np.isfinite(vt) and np.isfinite(mc) and np.isfinite(mt)):
+        raise ValueError(
+            f"{metric}: values are too large for a variance to be computed (overflow); "
+            "check for corrupt rows")
     diff, lo, hi, stat, p = welch_core(mc, vc, c.size, mt, vt, t.size, alpha)
     warnings: list[str] = []
     if vc == 0 and vt == 0:
@@ -211,9 +216,15 @@ def compare_ratios(
         raise ValueError("the denominator sums to zero in an arm; the ratio is undefined")
 
     def moments(x: FloatArray, d: FloatArray) -> tuple[float, float, float, float, float]:
-        cov = np.cov(x, d, ddof=1)
-        return float(x.mean()), float(d.mean()), float(cov[0, 0]), float(cov[1, 1]), float(
-            cov[0, 1])
+        with np.errstate(over="ignore", invalid="ignore"):
+            cov = np.cov(x, d, ddof=1)
+        out = (float(x.mean()), float(d.mean()), float(cov[0, 0]), float(cov[1, 1]),
+               float(cov[0, 1]))
+        if not np.isfinite(out).all():
+            raise ValueError(
+                f"{metric}: values are too large for a variance to be computed (overflow); "
+                "check for corrupt rows")
+        return out
 
     c_m, t_m = moments(xc, dc), moments(xt, dt)
     diff, lo, hi, z, p, var_c, var_t = ratio_core(xc.size, *c_m, xt.size, *t_m, alpha=alpha)
