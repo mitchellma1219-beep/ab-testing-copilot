@@ -12,6 +12,7 @@ license = { text = "MIT" }
 dependencies = ["numpy>=1.26", "scipy>=1.11", "pandas>=2.1", "pydantic>=2.5"]
 
 [project.optional-dependencies]
+ui = ["streamlit>=1.67", "plotly>=7.1"]
 dev = [
     "pytest>=8",
     "pytest-cov>=5",
@@ -19,6 +20,8 @@ dev = [
     "mypy>=1.10",
     "statsmodels>=0.14",
     "pyyaml>=6",
+    "bandit>=1.7",
+    "pip-audit>=2.7",
 ]
 
 [project.scripts]
@@ -38,7 +41,12 @@ target-version = "py311"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+# S101: pytest assertions. S603: the tests start this repository's own scripts (the skill
+# entry point and `streamlit run`) with fixed argument lists and no shell.
+"tests/**" = ["S101", "S603"]
 
 [tool.mypy]
 strict = true
@@ -46,5 +54,5 @@ files = ["src"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["scipy.*", "pandas.*"]
+module = ["scipy.*", "pandas.*", "plotly.*"]
 ignore_missing_imports = true

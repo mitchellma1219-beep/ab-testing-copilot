@@ -153,6 +153,44 @@ def mde_for_proportions(
     return hi
 
 
+def mde_for_means(
+    std_dev: float, n_control: int, n_treatment: int, alpha: float = 0.05, power: float = 0.8
+) -> float:
+    """Smallest absolute difference in means detectable with the given power (z approximation)."""
+    _check_alpha_power(alpha, power)
+    if n_control < 1 or n_treatment < 1:
+        raise ValueError("sample sizes must be >= 1")
+    if not std_dev > 0:
+        raise ValueError("std_dev must be > 0")
+    z = float(norm.ppf(1 - alpha / 2)) + float(norm.ppf(power))
+    return z * std_dev * math.sqrt(1 / n_control + 1 / n_treatment)
+
+
+def power_curve(
+    metric_type: str, absolute_effect: float, n_control_max: int, *, baseline: float = 0.0,
+    std_dev: float = 1.0, alpha: float = 0.05, allocation_ratio: float = 1.0, points: int = 60,
+) -> list[tuple[int, float]]:
+    """Power of the fixed-horizon test at ``points`` control-arm sizes up to ``n_control_max``.
+
+    Returns ``(n_control, power)`` pairs; the treatment arm holds ``allocation_ratio`` times
+    as many units.
+    """
+    _check_ratio(allocation_ratio)
+    if metric_type not in ("binary", "continuous"):
+        raise ValueError("metric_type must be 'binary' or 'continuous'")
+    if n_control_max < 2 or points < 2:
+        raise ValueError("n_control_max and points must be >= 2")
+    sizes = sorted({max(2, round(n_control_max * (i + 1) / points)) for i in range(points)})
+    out: list[tuple[int, float]] = []
+    for n_c in sizes:
+        n_t = max(2, round(n_c * allocation_ratio))
+        power = (power_for_proportions(baseline, absolute_effect, n_c, n_t, alpha)
+                 if metric_type == "binary"
+                 else power_for_means(std_dev, absolute_effect, n_c, n_t, alpha))
+        out.append((n_c, power))
+    return out
+
+
 def duration_days(n_total: int, eligible_units_per_day: float, traffic_share: float = 1.0) -> int:
     """Days needed to enroll ``n_total`` units given explicit, constant traffic assumptions."""
     if n_total < 1:
