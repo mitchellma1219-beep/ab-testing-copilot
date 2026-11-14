@@ -1,47 +1,58 @@
-# Project state — three AI Skills (updated 2026-11-13)
+# Project state — three AI Skills (updated 2026-11-13, 21:30 PT)
 
-## Blockers (need the owner)
+## GitHub
 
-1. **GitHub connection (in progress, 2026-11-13 21:15 PT)**: GitHub account `mitchellma1219-beep`
-   (personal). Three **private** repos were created in the browser with an auto-generated
-   README commit: `auto-data-scientist` (b5aca74), `ab-testing-copilot` (2e9f9f6),
-   `agent-reliability-lab` (d22393f). Still needed from the owner: install/authorize the
-   Claude GitHub App on these three repos and connect GitHub in Claude. Until then the
-   session cannot clone or push. Nothing has been pushed yet.
-   - The auto-generated initial commits carry the owner's Gmail address as author. Decide
-     before making the repos public whether to replace them (force-push, needs approval).
-   - Commit identity for our commits: `Mitchell Ma <325205137+mitchellma1219-beep@users.noreply.github.com>`.
-2. **Package installs are disabled** in this workspace (pypi.org does not resolve). The
-   owner needs to turn on "Allow network egress" (Settings > Capabilities); a new chat may
-   be required for it to take effect.
-   Missing: duckdb, statsmodels, streamlit, plotly, pyarrow, polars, coverage/pytest-cov,
-   bandit, pip-audit, hypothesis. This blocks Milestone A (DuckDB is its required engine),
-   every dashboard, coverage measurement and security scanners.
+- Account: `mitchellma1219-beep` (personal). Claude GitHub App installed on exactly three
+  repositories and linked to Claude (installation 181814682).
+- All three repositories are **private** until their release gates are met:
 
-## Milestone order
+| Repository | State |
+|---|---|
+| https://github.com/mitchellma1219-beep/ab-testing-copilot | `main`: auto-generated README. Work is on `feat/core-engine`, draft pull request #1, CI green. |
+| https://github.com/mitchellma1219-beep/auto-data-scientist | `main`: auto-generated README only. Not started. |
+| https://github.com/mitchellma1219-beep/agent-reliability-lab | `main`: auto-generated README only. Not started. |
 
-Milestone A (auto-data-scientist) is blocked by (2), so work started on the independent
-parts of Milestone B, as the directive allows.
+- Commit identity: `Mitchell Ma <325205137+mitchellma1219-beep@users.noreply.github.com>`.
+- Open decision for the owner: the auto-generated initial commit in each repository carries
+  the owner's personal email as author. Before a repository is made public, decide whether to
+  replace that commit (force-push, needs explicit approval) or keep it.
+
+## Blocker (needs the owner)
+
+**Package installs are still disabled in the build sandbox** (pypi.org does not resolve).
+The owner needs to turn on "Use the internet while making files" in Settings > Capabilities
+(under "Create and edit files"); a new chat may be needed for it to take effect.
+Missing locally: duckdb, statsmodels, streamlit, plotly, pyarrow, polars, pytest-cov, bandit,
+pip-audit, hypothesis. This blocks Milestone A (DuckDB is its required engine) and every
+dashboard. GitHub Actions is not affected and is currently the only place where the full
+dev dependency set runs.
+
+## Milestones
+
+Milestone A (auto-data-scientist) is blocked by the install restriction, so work started on
+the independent parts of Milestone B, as the directive allows.
 
 | Project | State |
 |---|---|
-| auto-data-scientist | Not started (blocked: DuckDB, pyarrow, Streamlit unavailable) |
-| ab-testing-copilot | Core engine, CLI, skill, 90 passing tests, local git commit. Not published. |
-| agent-reliability-lab | Not started (core is buildable with what is installed) |
+| auto-data-scientist | Not started (blocked: DuckDB, pyarrow, Streamlit unavailable locally) |
+| ab-testing-copilot | Core engine, CLI, skill. 99 tests green in CI on Python 3.11/3.12/3.13, coverage 97.74%. Dashboard and release docs open. Not released. |
+| agent-reliability-lab | Not started (core is buildable with what is installed locally) |
 
-## ab-testing-copilot
+## ab-testing-copilot evidence
 
-- Path: `/home/claude/workspace/ab-testing-copilot` (cloud workspace; a zip was sent in chat)
-- Verified: `pytest` 90 passed; `ruff check .` clean; `mypy` strict clean. See QUALITY_REPORT.md.
-- Commit: see `git log` (local only, authored with the GitHub noreply address).
-- GitHub URL: https://github.com/mitchellma1219-beep/ab-testing-copilot (private, README only so far).
+- Pull request: https://github.com/mitchellma1219-beep/ab-testing-copilot/pull/1 (draft)
+- CI run 43561369486: ruff clean, mypy strict clean, 99 passed on 3.11.18 / 3.12.16 / 3.13.18,
+  line coverage 97.74%. The first run (43561092763) failed on a missing PyYAML dev
+  dependency, which was fixed.
+- Details: QUALITY_REPORT.md. Remaining work: TASKS.md.
 
 ## Continue with
 
 ```bash
-cd ab-testing-copilot
+git clone https://github.com/mitchellma1219-beep/ab-testing-copilot && cd ab-testing-copilot
+git checkout feat/core-engine
 python -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
 pytest --cov=ab_testing_copilot --cov-report=term-missing
 ruff check . && mypy
-python -m ab_testing_copilot simulate --n-sims 5000
+abcopilot simulate --n-sims 5000
 ```

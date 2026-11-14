@@ -87,7 +87,8 @@ cli.py and skills/.../abcopilot.py are thin entry points over the same functions
 ## Testing
 
 ```bash
-pytest            # 90 tests: unit, integration, adversarial, statistical
+pytest            # 99 tests: unit, integration, adversarial, statistical
+                  # (8 statsmodels cross-checks are skipped if statsmodels is absent)
 ruff check . && mypy
 ```
 

@@ -21,3 +21,7 @@ jobs:
       - run: ruff check .
       - run: mypy
       - run: pytest --cov=ab_testing_copilot --cov-report=term-missing --cov-fail-under=85
+      - name: Smoke-test the installed CLI and the skill script
+        run: |
+          abcopilot design --baseline 0.10 --mde 0.02
+          python skills/ab-testing-copilot/scripts/abcopilot.py srm 5000 5010

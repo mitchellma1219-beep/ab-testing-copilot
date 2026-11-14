@@ -1,20 +1,53 @@
 # Quality report — ab-testing-copilot 0.1.0
 
-Environment: Python 3.13.18, numpy 2.5.3, scipy 1.18.1, pandas 3.0.5, pydantic 2.13.5 (Linux,
-2 vCPU). Measured 2026-11-13. Every number below was produced by a command run in that
-environment; nothing is estimated.
+Two environments were used, and every number below was produced by a command run in one of
+them; nothing is estimated.
+
+- **Local build sandbox**: Python 3.13.18, numpy 2.5.3, scipy 1.18.1, pandas 3.0.5, pydantic
+  2.13.5 (Linux, 2 vCPU, no package installs possible). Measured 2026-11-13.
+- **GitHub Actions** (`ubuntu-latest`, clean `pip install -e ".[dev]"`): Python 3.11.18,
+  3.12.16 and 3.13.18 with statsmodels 0.15.0, pandas 3.1.1, pytest 9.2.0, ruff 0.17.5,
+  mypy 2.4.1. Run 43561369486 on pull request #1, 2026-11-13.
 
 ## Tests executed
 
 | Layer | Tests | Result |
 |---|---|---|
-| Unit (`tests/unit`) | 46 | pass |
-| Integration incl. CLI and skill script via subprocess (`tests/integration`) | 10 | pass |
+| Unit (`tests/unit`), of which 8 are statsmodels cross-checks | 54 | pass |
+| Integration incl. CLI and skill script via subprocess (`tests/integration`) | 11 | pass |
 | Adversarial (`tests/adversarial`) | 23 | pass |
 | Statistical / Monte Carlo (`tests/statistical`) | 11 | pass |
-| **Total** | **90** | **90 pass, 0 fail** (about 9 s) |
+| **Total** | **99** | **99 pass, 0 fail on each of Python 3.11, 3.12, 3.13 (CI)** |
 
-`ruff check .`: clean. `mypy` (strict, `src/`): no issues in 11 files.
+Locally 91 pass and the statsmodels module is skipped (statsmodels is not installed there).
+`ruff check .`: clean locally and in CI. `mypy` (strict, `src/`): no issues in 11 files,
+locally and on all three CI Python versions.
+
+## Coverage (pytest-cov, CI, identical on all three Python versions)
+
+| Module | Statements | Missed | Cover |
+|---|---|---|---|
+| `analysis.py` | 131 | 3 | 98% |
+| `cli.py` | 117 | 5 | 96% |
+| `decision.py` | 64 | 0 | 100% |
+| `design.py` | 81 | 5 | 94% |
+| `diagnostics.py` | 67 | 1 | 99% |
+| `experiment.py` | 112 | 2 | 98% |
+| `models.py` | 71 | 0 | 100% |
+| `report.py` | 26 | 0 | 100% |
+| `simulation.py` | 117 | 0 | 100% |
+| `__init__.py`, `__main__.py` | 9 | 2 | — |
+| **Total** | **795** | **18** | **97.74%** |
+
+This is line coverage. Code run only in subprocesses (`__main__.py`, the skill script) is
+not counted. The CI gate is 85%.
+
+## CI history
+
+| Run | Result | Notes |
+|---|---|---|
+| 43561092763 | failed | Clean environment exposed a missing dev dependency: the skill frontmatter test imports PyYAML, which was only present in the local sandbox. 89 passed, 1 failed on 3.11; other jobs cancelled by fail-fast. |
+| 43561369486 | passed | PyYAML declared, `fail-fast: false`, statsmodels cross-checks added. 99 passed on 3.11, 3.12, 3.13. |
 
 ## Cross-checks against trusted implementations
 
@@ -24,7 +57,12 @@ environment; nothing is estimated.
 - Benjamini-Hochberg equals `scipy.stats.false_discovery_control`; Holm and Bonferroni
   match hand-computed values.
 - Sample size 10% -> 12%, alpha 0.05, power 0.8 gives 3,841 per arm (standard published value).
-- Not cross-checked against statsmodels (not installable in the build environment).
+- statsmodels (CI only): `proportions_ztest` (z and p to 1e-10), Welch via
+  `weightstats.ttest_ind(usevar="unequal")`, `multipletests` for Bonferroni / Holm / BH
+  (to 1e-12), and `NormalIndPower` sample size and power at allocation ratios 1, 3 and 0.5.
+- The two-proportion **sample size and power** formulas are checked against a published
+  value and by simulation, not against statsmodels (statsmodels uses an arcsine effect size
+  for proportions, which is a different approximation).
 
 ## Monte Carlo validation (`abcopilot simulate --n-sims 5000 --seed 0`)
 
@@ -95,21 +133,17 @@ found nothing. bandit, pip-audit and a dedicated secret scanner were **not** run
 
 ## Not verified / not done
 
-- **Line coverage is not measured** (coverage.py unavailable). The CI workflow enforces 85%
-  but has never executed.
-- **CI has never run**; the repository is not on GitHub yet.
-- Python 3.11 and 3.12 are untested (only 3.13 was available).
-- `pip install -e .` and the `abcopilot` console script are untested (no network for the
-  build backend); the CLI was exercised through `python -m ab_testing_copilot` and the
-  skill script.
 - The skill was validated structurally (frontmatter, name = directory, script executes)
-  but not loaded inside Claude Code.
+  but has not been loaded inside Claude Code.
 - No dashboard, no group-sequential testing, no novelty-effect or HTE analysis, no
   ratio metrics, no hypothesis/metric-selection assistant.
+- Security scanners (bandit, pip-audit, a secret scanner) have not been run.
 - No independent reviewer pass (six-role review) has been run yet.
 - ARCHITECTURE.md, CONTRIBUTING.md, PORTFOLIO.md are not written.
+- CI has only run on pull request #1; `main` still holds the auto-generated README.
 
 ## Release recommendation
 
-**Do not publish yet.** The statistical core is tested and behaves as documented, but the
-release gates on coverage, CI, dashboard, security scanning and independent review are open.
+**Do not publish yet.** The statistical core is tested, covered (97.74%) and green in CI on
+three Python versions, but the release gates on the dashboard, security scanning,
+independent review and portfolio documentation are still open.
