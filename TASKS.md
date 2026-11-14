@@ -17,6 +17,7 @@
 - [ ] Independent review by someone other than the author of the code (six-role review)
 - [ ] Load the skill in Claude Code and run it on a real task
 - [ ] Dedicated secret scanner (gitleaks) in CI
+- [ ] Check the two sample-size ratios quoted from memory (Jennison and Turnbull, tables 2.2 and 2.4) against the book
 - [ ] Dashboard checked by a person in a browser beyond the automated tests and screenshots
 - [ ] Futility boundaries, bias-adjusted estimates after early stopping, CUPED for ratio metrics
 - [ ] Merge pull request #1 into `main`

@@ -27,7 +27,9 @@ Second milestone (2026-11-14):
 - **Agent Skill.** `.claude/skills/ab-testing-copilot` links to the skill; `SKILL.md`
   covers the new commands.
 - **Documentation and demo.** `ARCHITECTURE.md`, `CONTRIBUTING.md`, `PORTFOLIO.md`,
-  `demo/` (script, sample reports, standalone charts, screenshots), `benchmarks/`.
+  `demo/` (script, sample reports, standalone charts, screenshots), `benchmarks/`
+  (timings, and a script that prints the statistical evidence quoted in
+  `QUALITY_REPORT.md`).
 
 Behaviour changes to existing features:
 
