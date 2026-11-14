@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import logging
 import math
@@ -362,6 +363,20 @@ def _validation_message(exc: ValidationError) -> str:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """Run the CLI and return its exit code."""
+    try:
+        code = _run(argv)
+        sys.stdout.flush()
+        return code
+    except BrokenPipeError:
+        # The reader closed the pipe early (for example `abcopilot ... | head`). Point stdout
+        # at the null device so that the interpreter does not complain again on exit.
+        with contextlib.suppress(OSError, ValueError):
+            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 0
+
+
+def _run(argv: Sequence[str] | None) -> int:
     logging.basicConfig(
         level=os.environ.get("ABCOPILOT_LOG_LEVEL", "WARNING"), stream=sys.stderr,
         format='{"ts":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","msg":"%(message)s"}')

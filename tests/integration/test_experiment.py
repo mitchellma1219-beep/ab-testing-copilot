@@ -167,3 +167,28 @@ def test_skill_documents_every_cli_command_and_runs_through_the_link(tmp_path):
                             capture_output=True, text=True, env=env, cwd=tmp_path, check=False)
     assert bounds.returncode == 0, bounds.stderr
     assert json.loads(bounds.stdout)["critical_values"][-1] == pytest.approx(2.0310, abs=5e-5)
+
+
+def test_cli_stops_quietly_when_the_reader_closes_the_pipe(monkeypatch):
+    class Closed:
+        def write(self, _text):
+            raise BrokenPipeError
+
+        def flush(self):
+            raise BrokenPipeError
+
+        def fileno(self):
+            raise ValueError("no file descriptor")
+
+    monkeypatch.setattr(sys, "stdout", Closed())
+    assert main(["srm", "5000", "5010"]) == 0
+
+    env = {"PATH": "/usr/bin:/bin", "PYTHONPATH": str(ROOT / "src")}
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "ab_testing_copilot", "sequential", "--method", "pocock",
+         "--looks", "40", "--format", "json"],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, text=True)
+    proc.stdout.close()  # nobody reads: the first write hits a closed pipe
+    stderr = proc.stderr.read()
+    proc.stderr.close()
+    assert proc.wait(timeout=120) == 0 and "Traceback" not in stderr and stderr == ""
