@@ -1,0 +1,93 @@
+{
+  "environment": {
+    "python": "3.13.18",
+    "platform": "Linux-6.18.44-fc-v470-x86_64-with-glibc2.39",
+    "cpu_count": 2,
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "pandas": "3.0.5",
+    "ab_testing_copilot": "0.1.0"
+  },
+  "quick": false,
+  "repeats": 3,
+  "results": [
+    {
+      "name": "analyze_experiment, 10,000 rows: CUPED + 1 guardrail",
+      "best_s": 0.012292672000512539,
+      "median_s": 0.012562646999867866,
+      "peak_mb": 1.988765
+    },
+    {
+      "name": "analyze_experiment, 100,000 rows: CUPED + 1 guardrail",
+      "best_s": 0.03759373599950777,
+      "median_s": 0.03809821200047736,
+      "peak_mb": 12.205575
+    },
+    {
+      "name": "analyze_experiment, 1,000,000 rows: CUPED + 1 guardrail",
+      "best_s": 0.3735483099999328,
+      "median_s": 0.4206638749992635,
+      "peak_mb": 116.026423
+    },
+    {
+      "name": "analyze_experiment, 100,000 rows: sequential look + novelty + segments",
+      "best_s": 0.11941945499984286,
+      "median_s": 0.12865049199990608,
+      "peak_mb": 17.177336
+    },
+    {
+      "name": "sequential_boundaries, 5 looks (O'Brien-Fleming type)",
+      "best_s": 0.003876384999784932,
+      "median_s": 0.0038873489993420662,
+      "peak_mb": null
+    },
+    {
+      "name": "sequential_boundaries, 20 looks (O'Brien-Fleming type)",
+      "best_s": 0.0385726929998782,
+      "median_s": 0.04052274400055467,
+      "peak_mb": null
+    },
+    {
+      "name": "sequential_boundaries, 100 looks (O'Brien-Fleming type)",
+      "best_s": 0.6480146009998862,
+      "median_s": 0.6914655700002186,
+      "peak_mb": null
+    },
+    {
+      "name": "inflation_factor, 5 looks (Pocock type, power 0.8)",
+      "best_s": 0.01740266500019061,
+      "median_s": 0.01853675399979693,
+      "peak_mb": null
+    },
+    {
+      "name": "aa_check, 1,000 re-labellings of 20,000 units (binary)",
+      "best_s": 0.4509303759996328,
+      "median_s": 0.5025510610003039,
+      "peak_mb": null
+    },
+    {
+      "name": "aggregate_to_units, 999,801 session rows -> 200,000 users",
+      "best_s": 0.15372911800022848,
+      "median_s": 0.15887576400018588,
+      "peak_mb": 82.841671
+    },
+    {
+      "name": "analyze_experiment, ratio metric (delta method), 200,000 users",
+      "best_s": 0.06281088800005818,
+      "median_s": 0.06293466700026329,
+      "peak_mb": 24.215765
+    },
+    {
+      "name": "bootstrap_mean_diff, 2,000 resamples x 100,000 per arm",
+      "best_s": 1.9683500860001004,
+      "median_s": 2.2164965459996893,
+      "peak_mb": null
+    },
+    {
+      "name": "run_validation_suite, 5,000 simulations (24 checks)",
+      "best_s": 13.367612361999818,
+      "median_s": 13.925929377000102,
+      "peak_mb": null
+    }
+  ]
+}

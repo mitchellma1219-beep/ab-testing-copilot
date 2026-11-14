@@ -41,6 +41,6 @@ jobs:
           .venv/bin/pip install --upgrade pip
           .venv/bin/pip install -e ".[dev,ui]"
       - name: bandit (static security analysis of all shipped Python)
-        run: .venv/bin/bandit -r src app examples skills
+        run: .venv/bin/bandit -r src app examples skills demo benchmarks
       - name: pip-audit (known vulnerabilities in the installed dependencies)
         run: .venv/bin/pip-audit --skip-editable

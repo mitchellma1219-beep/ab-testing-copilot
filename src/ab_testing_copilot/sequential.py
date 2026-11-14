@@ -18,7 +18,7 @@ Spending functions (two-sided, symmetric: half of every increment goes to each t
 * Pocock type:          ``a(t) = alpha * ln(1 + (e - 1) * t)``
 
 These are the Lan and DeMets (1983) functions applied with ``alpha / 2`` per tail, the convention
-of the Lan-DeMets program, gsDesign, rpact, SAS and Stata.
+of Stata ``gsbounds``, gsDesign and NCSS PASS, whose published values the tests reproduce.
 """
 
 from __future__ import annotations
