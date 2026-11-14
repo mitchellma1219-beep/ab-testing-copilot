@@ -1,0 +1,369 @@
+{
+  "decision": "Ship",
+  "evidence_quality": "strong",
+  "reasons": [
+    "The primary metric improved: converted effect +0.01195 (95.0% CI [0.003485, 0.02041]).",
+    "page_load_ms: harm larger than the 0.02 relative margin is ruled out (worst case 0.001766)."
+  ],
+  "primary": {
+    "metric": "converted",
+    "metric_type": "binary",
+    "method": "two-proportion z test (pooled SE); Wald CI (unpooled SE); delta-method relative CI",
+    "n_control": 10084,
+    "n_treatment": 9916,
+    "control_value": 0.09807616025386752,
+    "treatment_value": 0.1100242033077854,
+    "absolute_effect": 0.011948043053917876,
+    "ci_low": 0.003484521407489451,
+    "ci_high": 0.020411564700346302,
+    "relative_effect": 0.1218241316033446,
+    "rel_ci_low": 0.03043241196453922,
+    "rel_ci_high": 0.21321585124214998,
+    "statistic": 2.7675519647099507,
+    "p_value": 0.005647904064990037,
+    "alpha": 0.05,
+    "warnings": [],
+    "std_error": 0.004318202636980884
+  },
+  "guardrails": [
+    {
+      "estimate": {
+        "metric": "page_load_ms",
+        "metric_type": "continuous",
+        "method": "Welch t test; delta-method relative CI",
+        "n_control": 10084,
+        "n_treatment": 9916,
+        "control_value": 1201.5604422848076,
+        "treatment_value": 1199.5378378378377,
+        "absolute_effect": -2.022604446969808,
+        "ci_low": -6.170956605491334,
+        "ci_high": 2.1257477115517176,
+        "relative_effect": -0.0016833147761786682,
+        "rel_ci_low": -0.005132693783653031,
+        "rel_ci_high": 0.0017660642312956948,
+        "statistic": -0.9556738981491829,
+        "p_value": 0.3392485686756868,
+        "alpha": 0.05,
+        "warnings": [],
+        "std_error": 2.1164169607299192
+      },
+      "status": "pass",
+      "margin": 0.02,
+      "message": "page_load_ms: harm larger than the 0.02 relative margin is ruled out (worst case 0.001766)."
+    }
+  ],
+  "diagnostics": [
+    {
+      "name": "sample_ratio_mismatch",
+      "severity": "info",
+      "passed": true,
+      "message": "Observed treatment share 0.4958 vs planned 0.5000 (chi-square p = 0.235). No evidence of SRM.",
+      "p_value": 0.23485728854500204,
+      "assessed": true
+    },
+    {
+      "name": "peeking",
+      "severity": "info",
+      "passed": true,
+      "message": "Single planned analysis (fixed horizon).",
+      "p_value": null,
+      "assessed": true
+    },
+    {
+      "name": "novelty_effect",
+      "severity": "info",
+      "passed": true,
+      "message": "No clear time trend in the treatment effect: slope +0.002154 per day (SE 0.00107, t = 2.01 on 12 df, p = 0.0669) over 14 periods; fitted effect -0.002642 at the start and +0.02536 at the end; first-half effect +0.00465 (SE 0.00612) vs second-half +0.01856 (SE 0.00605). The check has limited power, so this does not rule out a novelty effect.",
+      "p_value": 0.06693844414372746,
+      "assessed": true
+    },
+    {
+      "name": "segments_exploratory",
+      "severity": "info",
+      "passed": true,
+      "message": "Exploratory segment analysis: 3 segment(s) of 'segment' analysed. Cochran's Q = 0.42 on 2 df, p = 0.81, I^2 = 0%: no clear evidence that the absolute effect differs. 0 segment(s) significant after holm correction (family-wise error 0.05). These are hypotheses for a follow-up experiment, not findings; they do not change the recommendation.",
+      "p_value": 0.8095506794228877,
+      "assessed": true
+    },
+    {
+      "name": "aa_check",
+      "severity": "info",
+      "passed": true,
+      "message": "A/A check: 1000 random re-labellings of 20,000 'user_id' unit(s), two-proportion z test on rows: 3.7% came out significant at alpha = 0.05 (95% interval 2.6% to 5.1%, binomial p = 0.0591). The false-positive rate is consistent with alpha.",
+      "p_value": 0.05909278733192205,
+      "assessed": true
+    }
+  ],
+  "assumptions": [
+    "Units were randomly assigned and analysed as assigned (intention to treat).",
+    "One independent observation per randomised unit.",
+    "Two-sided tests; guardrails are not corrected for multiplicity (conservative for harm).",
+    "Segment or exploratory cuts are hypothesis-generating, not confirmatory."
+  ],
+  "effective_alpha": 0.05,
+  "sequential": null,
+  "novelty": {
+    "assessed": true,
+    "reason": null,
+    "alpha": 0.05,
+    "periods": [
+      {
+        "index": 0,
+        "label": "2026-01-05",
+        "n_control": 734,
+        "n_treatment": 659,
+        "effect": 0.004661922738192215,
+        "std_error": 0.01679626379530428
+      },
+      {
+        "index": 1,
+        "label": "2026-01-06",
+        "n_control": 694,
+        "n_treatment": 719,
+        "effect": -0.006839871258913069,
+        "std_error": 0.016869309801555887
+      },
+      {
+        "index": 2,
+        "label": "2026-01-07",
+        "n_control": 733,
+        "n_treatment": 635,
+        "effect": -0.0052035105434467405,
+        "std_error": 0.016712659690301383
+      },
+      {
+        "index": 3,
+        "label": "2026-01-08",
+        "n_control": 763,
+        "n_treatment": 726,
+        "effect": 0.010786405698832727,
+        "std_error": 0.016159170061702078
+      },
+      {
+        "index": 4,
+        "label": "2026-01-09",
+        "n_control": 644,
+        "n_treatment": 752,
+        "effect": -0.0003138628254261977,
+        "std_error": 0.01638184864963537
+      },
+      {
+        "index": 5,
+        "label": "2026-01-10",
+        "n_control": 769,
+        "n_treatment": 721,
+        "effect": -0.008155844811695942,
+        "std_error": 0.014191069062610985
+      },
+      {
+        "index": 6,
+        "label": "2026-01-11",
+        "n_control": 773,
+        "n_treatment": 702,
+        "effect": 0.042445719677285,
+        "std_error": 0.016781622200390048
+      },
+      {
+        "index": 7,
+        "label": "2026-01-12",
+        "n_control": 708,
+        "n_treatment": 701,
+        "effect": 0.013826091862311304,
+        "std_error": 0.01638558282352397
+      },
+      {
+        "index": 8,
+        "label": "2026-01-13",
+        "n_control": 680,
+        "n_treatment": 744,
+        "effect": 0.0077324478178368156,
+        "std_error": 0.01704667260071215
+      },
+      {
+        "index": 9,
+        "label": "2026-01-14",
+        "n_control": 749,
+        "n_treatment": 709,
+        "effect": 0.03600098674113675,
+        "std_error": 0.016143515129628208
+      },
+      {
+        "index": 10,
+        "label": "2026-01-15",
+        "n_control": 731,
+        "n_treatment": 754,
+        "effect": 0.0010160130920544158,
+        "std_error": 0.015406250834437989
+      },
+      {
+        "index": 11,
+        "label": "2026-01-16",
+        "n_control": 714,
+        "n_treatment": 697,
+        "effect": 0.015337842454054798,
+        "std_error": 0.016468004926779505
+      },
+      {
+        "index": 12,
+        "label": "2026-01-17",
+        "n_control": 685,
+        "n_treatment": 734,
+        "effect": 0.03580421249428191,
+        "std_error": 0.015414515150284863
+      },
+      {
+        "index": 13,
+        "label": "2026-01-18",
+        "n_control": 707,
+        "n_treatment": 663,
+        "effect": 0.0188312948941953,
+        "std_error": 0.01537968532370825
+      }
+    ],
+    "excluded_periods": 0,
+    "rows_without_date": 0,
+    "slope": 0.002154170793097814,
+    "slope_std_error": 0.0010693755616697329,
+    "statistic": 2.01441932124788,
+    "dof": 12,
+    "p_value": 0.06693844414372746,
+    "fitted_start": -0.0026421477598341635,
+    "fitted_end": 0.025362072550437417,
+    "early_effect": 0.0046504138611153005,
+    "early_std_error": 0.0061186091885945485,
+    "late_effect": 0.018558361148465288,
+    "late_std_error": 0.006047866226012319,
+    "decay_detected": false,
+    "growth_detected": false,
+    "reversal_detected": false,
+    "message": "No clear time trend in the treatment effect: slope +0.002154 per day (SE 0.00107, t = 2.01 on 12 df, p = 0.0669) over 14 periods; fitted effect -0.002642 at the start and +0.02536 at the end; first-half effect +0.00465 (SE 0.00612) vs second-half +0.01856 (SE 0.00605). The check has limited power, so this does not rule out a novelty effect."
+  },
+  "segments": {
+    "exploratory": true,
+    "label": "Exploratory - hypothesis-generating only. Segment results do not change the recommendation and need a new, pre-registered experiment to be confirmed.",
+    "segment_col": "segment",
+    "correction": "holm",
+    "alpha": 0.05,
+    "segments": [
+      {
+        "segment": "desktop",
+        "estimate": {
+          "metric": "converted",
+          "metric_type": "binary",
+          "method": "two-proportion z test (pooled SE); Wald CI (unpooled SE); delta-method relative CI",
+          "n_control": 4983,
+          "n_treatment": 4934,
+          "control_value": 0.10234798314268513,
+          "treatment_value": 0.1114714227807053,
+          "absolute_effect": 0.009123439638020175,
+          "ci_low": -0.0030396092605702203,
+          "ci_high": 0.02128648853661057,
+          "relative_effect": 0.08914137199265593,
+          "rel_ci_low": -0.034883384262833425,
+          "rel_ci_high": 0.2131661282481453,
+          "statistic": 1.4702714389801321,
+          "p_value": 0.14148825316817357,
+          "alpha": 0.05,
+          "warnings": [],
+          "std_error": 0.00620575122529341
+        },
+        "adjusted_p_value": 0.28297650633634713,
+        "significant_after_correction": false,
+        "simultaneous_ci_low": -0.005733003438031211,
+        "simultaneous_ci_high": 0.02397988271407156
+      },
+      {
+        "segment": "mobile",
+        "estimate": {
+          "metric": "converted",
+          "metric_type": "binary",
+          "method": "two-proportion z test (pooled SE); Wald CI (unpooled SE); delta-method relative CI",
+          "n_control": 4058,
+          "n_treatment": 4002,
+          "control_value": 0.09512074913750616,
+          "treatment_value": 0.10944527736131934,
+          "absolute_effect": 0.01432452822381318,
+          "ci_low": 0.0010943766423125046,
+          "ci_high": 0.027554679805313856,
+          "relative_effect": 0.15059309723376657,
+          "rel_ci_low": 0.001388646571682639,
+          "rel_ci_high": 0.2997975478958505,
+          "statistic": 2.1224111909617505,
+          "p_value": 0.0338032232469404,
+          "alpha": 0.05,
+          "warnings": [],
+          "std_error": 0.006750201374034636
+        },
+        "adjusted_p_value": 0.10140966974082119,
+        "significant_after_correction": false,
+        "simultaneous_ci_low": -0.0018353175103328866,
+        "simultaneous_ci_high": 0.030484373957959245
+      },
+      {
+        "segment": "tablet",
+        "estimate": {
+          "metric": "converted",
+          "metric_type": "binary",
+          "method": "two-proportion z test (pooled SE); Wald CI (unpooled SE); delta-method relative CI",
+          "n_control": 1043,
+          "n_treatment": 980,
+          "control_value": 0.08916586768935762,
+          "treatment_value": 0.10510204081632653,
+          "absolute_effect": 0.015936173126968906,
+          "ci_low": -0.009905796832467138,
+          "ci_high": 0.04177814308640495,
+          "relative_effect": 0.17872503840245768,
+          "rel_ci_low": -0.1353532840170072,
+          "rel_ci_high": 0.49280336082192255,
+          "statistic": 1.2109880659366514,
+          "p_value": 0.2258999785351954,
+          "alpha": 0.05,
+          "warnings": [],
+          "std_error": 0.01318492082674692
+        },
+        "adjusted_p_value": 0.28297650633634713,
+        "significant_after_correction": false,
+        "simultaneous_ci_low": -0.01562826099446958,
+        "simultaneous_ci_high": 0.04750060724840739
+      }
+    ],
+    "skipped": [],
+    "units_without_segment": 0,
+    "pooled_effect": 0.011980691396128881,
+    "q_statistic": 0.4225518039795673,
+    "q_dof": 2,
+    "q_p_value": 0.8095506794228877,
+    "i_squared": 0.0,
+    "heterogeneity_detected": false,
+    "message": "Exploratory segment analysis: 3 segment(s) of 'segment' analysed. Cochran's Q = 0.42 on 2 df, p = 0.81, I^2 = 0%: no clear evidence that the absolute effect differs. 0 segment(s) significant after holm correction (family-wise error 0.05). These are hypotheses for a follow-up experiment, not findings; they do not change the recommendation."
+  },
+  "aa_check": {
+    "analysis": "two-proportion z test on rows",
+    "relabelled_unit": "user_id",
+    "n_units": 20000,
+    "n_rows": 20000,
+    "treatment_share": 0.4958,
+    "n_relabels": 1000,
+    "seed": 0,
+    "alpha": 0.05,
+    "false_positive_rate": 0.037,
+    "mc_standard_error": 0.006892024376045111,
+    "ci_low": 0.02618270884373734,
+    "ci_high": 0.05064112305992485,
+    "binomial_p_value": 0.05909278733192205,
+    "verdict": "calibrated",
+    "p_value_histogram": [
+      87,
+      103,
+      100,
+      112,
+      115,
+      91,
+      96,
+      116,
+      97,
+      83
+    ],
+    "message": "A/A check: 1000 random re-labellings of 20,000 'user_id' unit(s), two-proportion z test on rows: 3.7% came out significant at alpha = 0.05 (95% interval 2.6% to 5.1%, binomial p = 0.0591). The false-positive rate is consistent with alpha."
+  }
+}

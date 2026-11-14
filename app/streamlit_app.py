@@ -123,6 +123,11 @@ def looks_binary(series: pd.Series) -> bool:
     return bool(series.dropna().isin([0, 1]).all())
 
 
+def variant_labels(series: pd.Series) -> pd.Series:
+    """Variant labels as text (0/1 or True/False columns included); missing stays missing."""
+    return series.where(series.isna(), series.astype(str))
+
+
 def sync_metric_type(df: pd.DataFrame) -> None:
     """When another primary metric is picked, set its type from the values it holds."""
     metric = st.session_state.get("metric")
@@ -179,7 +184,7 @@ def setup_tab(df: pd.DataFrame, origin: str) -> ExperimentConfig | None:
     c2.metric("Columns", f"{len(columns)}")
     variant_col = c3.selectbox("Variant column", columns, pick(columns, "variant"),
                                key="variant_col")
-    labels = [str(v) for v in df[variant_col].dropna().astype(str).value_counts().index[:50]]
+    labels = [str(v) for v in variant_labels(df[variant_col]).value_counts().index[:50]]
     if len(labels) < 2:
         st.error("The variant column needs at least two labels.")
         return None
@@ -485,6 +490,9 @@ def decision_tab(report: DecisionReport) -> None:
                  "uncertain": STATUS["not_assessed"][0]}
         for g in report.guardrails:
             st.markdown(f"{marks[g.status]} **{g.status.capitalize()}** &nbsp; {md(g.message)}")
+        if report.evidence_quality == "invalid":
+            st.caption("The experiment failed validity checks, so these guardrail results "
+                       "are no more trustworthy than the primary effect.")
     flagged = [d for d in report.diagnostics if d.assessed and not d.passed]
     if flagged:
         st.subheader("Checks that did not pass")
@@ -535,7 +543,8 @@ def main() -> None:
     report = None
     if df is not None and config is not None:
         try:
-            report = run_analysis(df, config.model_dump_json())
+            labelled = df.assign(**{config.variant_col: variant_labels(df[config.variant_col])})
+            report = run_analysis(labelled, config.model_dump_json())
         except ValueError as exc:
             with setup:
                 st.error(f"The analysis could not run: {md(exc)}")

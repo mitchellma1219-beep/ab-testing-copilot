@@ -285,3 +285,25 @@ def test_streamlit_server_starts_headless_and_reports_healthy():
             proc.kill()
             proc.wait(timeout=20)
     assert proc.poll() is not None
+
+
+def test_numeric_variant_labels_and_invalid_results_are_handled():
+    at = _app()
+    at.sidebar.radio(key="source").set_value("Upload a CSV").run()
+    df = make_experiment(n=3000, lift=0.05)
+    df["variant"] = (df["variant"] == "treatment").astype(int)  # arms coded 0 and 1
+    at.sidebar.file_uploader(key="upload").upload("coded.csv", df.to_csv(index=False).encode(),
+                                                  "text/csv").run()
+    assert not at.exception and not at.error
+    assert sorted([at.selectbox(key="control").value, at.selectbox(key="treatment").value]) == [
+        "0", "1"]
+    at.selectbox(key="control").set_value("0").run()
+    at.selectbox(key="treatment").set_value("1").run()
+    assert not at.exception and not at.error
+    assert _banner(at) == "**Recommendation: Ship**"
+    assert _metric(at, "Units (control / treatment)") == (
+        f"{(df['variant'] == 0).sum():,} / {(df['variant'] == 1).sum():,}")
+    assert not any("no more trustworthy" in c.value for c in at.caption)
+    at.sidebar.radio(key="source").set_value("Built-in scenario").run()
+    at = _select_scenario(at, "sample_ratio_mismatch")
+    assert any("no more trustworthy than the primary effect" in c.value for c in at.caption)

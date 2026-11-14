@@ -1,0 +1,4 @@
+# Generated demo output and the bundled Plotly.js are not source code.
+demo/output/** linguist-generated=true
+demo/output/charts/plotly.min.js linguist-vendored=true
+examples/*.csv linguist-generated=true

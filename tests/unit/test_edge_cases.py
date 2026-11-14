@@ -170,3 +170,11 @@ def test_cli_edges(capsys, monkeypatch):
 def test_remaining_input_validation(call):
     with pytest.raises(ValueError):
         call()
+
+
+def test_public_api_exports_resolve():
+    import ab_testing_copilot as package
+
+    assert len(package.__all__) == len(set(package.__all__)) == 30
+    assert all(callable(getattr(package, name)) for name in package.__all__)
+    assert package.__version__ == "0.1.0"
