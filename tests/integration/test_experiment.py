@@ -135,3 +135,35 @@ def test_skill_frontmatter_is_valid():
     assert meta["name"] == "ab-testing-copilot" == (ROOT / "skills" / "ab-testing-copilot").name
     assert 0 < len(meta["description"]) <= 1024 and len(meta["name"]) <= 64
     assert len(body.splitlines()) < 500
+
+
+def test_claude_skills_link_is_relative_and_resolves():
+    import os
+
+    link = ROOT / ".claude" / "skills" / "ab-testing-copilot"
+    target = ROOT / "skills" / "ab-testing-copilot"
+    assert link.is_symlink() and os.readlink(link) == "../../skills/ab-testing-copilot"
+    assert link.resolve() == target.resolve()
+    assert (link / "SKILL.md").read_text() == (target / "SKILL.md").read_text()
+    assert (link / "references" / "methodology.md").is_file()
+
+
+def test_skill_documents_every_cli_command_and_runs_through_the_link(tmp_path):
+    from ab_testing_copilot.cli import _parser
+
+    text = (ROOT / "skills" / "ab-testing-copilot" / "SKILL.md").read_text()
+    commands = next(a for a in _parser()._actions if a.dest == "command").choices
+    assert set(commands) == {"plan", "design", "sequential", "analyze", "aa", "srm", "simulate"}
+    for name in commands:
+        assert f"`{name} " in text, f"SKILL.md does not document '{name}'"
+    script = ROOT / ".claude" / "skills" / "ab-testing-copilot" / "scripts" / "abcopilot.py"
+    env = {"PATH": "/usr/bin:/bin", "PYTHONPATH": ""}
+    gaps = subprocess.run([sys.executable, str(script), "plan", "--metric", "converted"],
+                          capture_output=True, text=True, env=env, cwd=tmp_path, check=False)
+    assert gaps.returncode == 1 and gaps.stdout == ""
+    assert "never guessed" in gaps.stderr and "--baseline" in gaps.stderr
+    bounds = subprocess.run([sys.executable, str(script), "sequential", "--method",
+                             "obrien-fleming", "--looks", "5", "--format", "json"],
+                            capture_output=True, text=True, env=env, cwd=tmp_path, check=False)
+    assert bounds.returncode == 0, bounds.stderr
+    assert json.loads(bounds.stdout)["critical_values"][-1] == pytest.approx(2.0310, abs=5e-5)

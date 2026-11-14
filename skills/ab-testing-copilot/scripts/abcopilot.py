@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Skill entry point: forwards to the ab_testing_copilot CLI."""
+"""Skill entry point: forwards to the ab_testing_copilot CLI.
+
+Commands: plan, design, sequential, analyze, aa, srm, simulate. Run ``<command> --help`` for
+the options of each. Works from the installed package or from a repository checkout.
+"""
 
 from __future__ import annotations
 
