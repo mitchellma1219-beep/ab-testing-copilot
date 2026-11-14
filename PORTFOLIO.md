@@ -177,7 +177,7 @@ All figures are from [QUALITY_REPORT.md](QUALITY_REPORT.md), measured on 2026-11
 - 447 tests in five layers (279 unit, 31 integration, 66 adversarial, 41 statistical,
   30 UI) pass on Python 3.11, 3.12 and 3.13 in CI run 43579387120.
 - Line coverage of the package is 99.96% (2,520 statements, 1 missed); the CI gate is 85%.
-- `ruff` and strict `mypy` are clean. bandit reports no issues over 5,200 lines of code;
+- `ruff` and strict `mypy` are clean. bandit reports no issues over 5,231 lines of code;
   pip-audit reports no known vulnerabilities.
 
 **Sequential testing**

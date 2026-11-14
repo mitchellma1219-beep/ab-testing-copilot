@@ -37,7 +37,7 @@ Run on 2026-11-14 against the code of this pull request, and on every pull reque
 | Tool | Scope | Result |
 |---|---|---|
 | ruff, rule set `S` (flake8-bandit) | whole repository | No finding in shipped code. In `tests/` two rules are switched off, each for a stated reason: `S101` (pytest assertions) and `S603` (the tests start this repository's own scripts, the skill entry point and `streamlit run`, with fixed argument lists and no shell) |
-| bandit 1.9.4, `bandit -r src app examples skills demo benchmarks` | 5,200 lines of code | No issues identified (0 low, 0 medium, 0 high); no `# nosec` anywhere |
+| bandit 1.9.4, `bandit -r src app examples skills demo benchmarks` | 5,231 lines of code | No issues identified (0 low, 0 medium, 0 high); no `# nosec` anywhere |
 | pip-audit 2.10.1, `pip-audit --skip-editable` in a clean virtual environment holding only `.[dev,ui]` | every installed dependency, runtime and development | No known vulnerabilities found |
 
 Nothing had to be fixed or suppressed. pip-audit run against the shared build sandbox

@@ -86,9 +86,10 @@ below are the evidence for that.
 | 43576919276 | c416a53 | passed | 444 tests, coverage 99.96% |
 | 43577599275 | 6e1fb97 | passed | 444 tests, coverage 99.96% |
 | 43579387120 | ce8cd12 | passed | 447 tests, coverage 99.96%; `audit` job passed. Last run on a commit that changes package code or tests |
+| 43580637180 | b280902 | passed | 447 tests, coverage 99.96%; `audit` job passed. Documentation, re-measured benchmark results and the evidence script |
 
-Commits after ce8cd12 change documentation, the recorded benchmark results and one
-evidence script only. Their runs are listed on the pull request.
+The commit that carries this version of the report changes documentation only. Its run is
+listed on the pull request.
 
 ## Group-sequential boundaries against published values
 
@@ -353,11 +354,11 @@ No comparison with other libraries was run.
 | Tool | Scope | Result |
 |---|---|---|
 | ruff rule set `S` (part of `ruff check .`) | whole repository | No finding in shipped code. In `tests/`, `S101` (assertions) and `S603` (the tests start this repository's own scripts with fixed arguments and no shell) are switched off |
-| `bandit -r src app examples skills demo benchmarks` (bandit 1.9.4) | 5,200 lines of code | No issues identified; 0 lines skipped with `# nosec` |
+| `bandit -r src app examples skills demo benchmarks` (bandit 1.9.4) | 5,231 lines of code | No issues identified; 0 lines skipped with `# nosec` |
 | `pip-audit --skip-editable` (pip-audit 2.10.1) in a clean virtual environment | every installed dependency | No known vulnerabilities found |
 | Keyword search of the tracked files for credentials and email addresses | all tracked files except the vendored Plotly bundle | No credential; one address, the GitHub no-reply commit identity in `PROJECT_STATE.md` |
 
-bandit and pip-audit gave the same results in the `audit` job of CI run 43579387120.
+bandit and pip-audit gave the same results in the `audit` job of CI run 43580637180.
 Nothing had to be fixed or suppressed. Details and the design measures are in
 [SECURITY.md](SECURITY.md).
 
