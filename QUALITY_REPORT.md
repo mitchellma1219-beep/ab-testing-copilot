@@ -48,6 +48,7 @@ not counted. The CI gate is 85%.
 |---|---|---|
 | 43561092763 | failed | Clean environment exposed a missing dev dependency: the skill frontmatter test imports PyYAML, which was only present in the local sandbox. 89 passed, 1 failed on 3.11; other jobs cancelled by fail-fast. |
 | 43561369486 | passed | PyYAML declared, `fail-fast: false`, statsmodels cross-checks added. 99 passed on 3.11, 3.12, 3.13. |
+| 43561578608 | passed | Added a smoke test of the installed `abcopilot` console script and the skill script; both ran on all three Python versions. |
 
 ## Cross-checks against trusted implementations
 

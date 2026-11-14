@@ -9,7 +9,7 @@
 - [ ] Dashboard (setup, power calculator, simulation, results, diagnostics, report export)
 - [ ] Group-sequential boundaries; novelty-effect check; HTE exploration; ratio metrics
 - [ ] Hypothesis / metric-selection guidance in the skill
-- [ ] bandit, pip-audit, secret scanner; six-role independent review
+- [ ] bandit, pip-audit, secret scanner (tools are now available); six-role independent review
 - [ ] ARCHITECTURE.md, CONTRIBUTING.md, PORTFOLIO.md, demo assets
 - [ ] Load the skill in Claude Code
 - [ ] Merge pull request #1 into `main`
@@ -17,7 +17,7 @@
 - [ ] Release audit, then make the repository public and add topics
 
 ## auto-data-scientist
-- [ ] Everything (blocked on DuckDB / pyarrow / Streamlit installs in the build sandbox)
+See TASKS.md in that repository (core done and green in CI; dashboard and release work open).
 
 ## agent-reliability-lab
 - [ ] Everything (core buildable now: pydantic + jsonschema available)
