@@ -87,3 +87,19 @@ def test_every_scenario_builds_and_can_be_analysed(name):
     assert report.decision.value in {"Ship", "Do not ship", "Inconclusive"}
     with pytest.raises(ValueError, match="unknown scenario"):
         make_scenario("nope")
+
+
+@pytest.mark.parametrize("seed", [7, 8, 9])
+def test_the_sample_ratio_mismatch_scenario_describes_the_artefact_it_contains(seed):
+    # Losing 15% of the non-converting control users lifts the control rate from 0.10 to
+    # 0.10 / (0.10 + 0.90 * 0.85) = 0.1156, so a treatment that does nothing looks 1.56 points
+    # worse. The scenario text must say "loss", and the engine must not turn it into a verdict.
+    df = make_scenario("sample_ratio_mismatch", seed)
+    rates = df.groupby("variant")["converted"].mean()
+    assert rates["treatment"] - rates["control"] == pytest.approx(-0.0156, abs=0.015)
+    assert rates["treatment"] < rates["control"]
+    truth = SCENARIOS["sample_ratio_mismatch"].truth
+    assert "apparent loss" in truth and "win" not in truth
+    report = analyze_experiment(df, ExperimentConfig(
+        primary=MetricSpec(column="converted", type="binary"), unit_col="user_id"))
+    assert report.decision.value == "Inconclusive" and report.evidence_quality == "invalid"

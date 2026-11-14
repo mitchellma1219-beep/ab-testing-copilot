@@ -14,7 +14,7 @@ streamlit run app/streamlit_app.py # the interactive dashboard
 | File in `output/` | What it shows | Ground truth of the data |
 |---|---|---|
 | `report_clean_win.md`, `.json` | Full report: effect, guardrail, novelty check, exploratory segments, A/A check | Lift +1.5 pp, nothing else |
-| `report_sample_ratio_mismatch.md` | An apparent win refused because the sample ratio is broken | No lift; 15% of non-converting control users lost |
+| `report_sample_ratio_mismatch.md` | A significant-looking loss refused because the sample ratio is broken | No effect; 15% of non-converting control users lost, which inflates the control rate |
 | `report_novelty_decay.md` | Ship with weak evidence and a novelty warning | Lift starts at +6 pp and halves every 3 days |
 | `report_segment_heterogeneity.md` | Segment effects, labelled exploratory | Lift +3 pp on mobile only |
 | `report_sequential_look2.md`, `report_sequential_look3.md` | A pre-registered four-look design: held back at look 2, stopped at look 3 | Lift +3 pp |
@@ -34,8 +34,11 @@ inside the `plotly` Python package (MIT licence); it is written once and shared 
 2. **A clean result.** Open the dashboard. The default scenario ships: the effect and its
    interval are on *Statistical results*, every check on *Diagnostic warnings*.
 3. **A result that only looks clean.** Switch the scenario to *Sample ratio mismatch*. The
-   naive effect is large and "significant"; the recommendation is Inconclusive with
-   evidence quality *invalid*, and the report says what to investigate.
+   treatment does nothing, yet the naive effect is a "significant" loss of 1.9 points
+   (p = 0.00002). The recommendation is Inconclusive with evidence quality *invalid*, and
+   the report says what to investigate. With the default seed this scenario also raises
+   a novelty warning although the generator has no time trend: a chance alarm, and the
+   reason that check is worded as a warning and never as proof.
 4. **Looking early.** In *Experiment setup* choose *Pre-registered sequential design*, four
    looks, look 2. A z of 2.8 no longer ships: the boundary at that look is 2.96. The
    *Simulation* tab shows why: repeating a fixed 5% test five times rejects about 14% of

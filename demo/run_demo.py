@@ -142,7 +142,7 @@ def build(out: Path) -> list[Path]:
          [{"bin": f"[{i / 10:.1f}, {(i + 1) / 10:.1f})", "count": c}
           for i, c in enumerate(clean.aa_check.p_value_histogram)])
 
-    # 2. A sample ratio mismatch: an apparent win that must not be trusted.
+    # 2. A sample ratio mismatch: a significant-looking loss that must not be trusted.
     srm = analyze_experiment(make_scenario("sample_ratio_mismatch"), ExperimentConfig(
         primary=CONVERTED, guardrails=[LOAD], unit_col="user_id"))
     save(out / "report_sample_ratio_mismatch.md",

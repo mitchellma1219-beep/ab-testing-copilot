@@ -119,8 +119,9 @@ SCENARIOS: dict[str, Scenario] = {
         {"load_ms_shift": 60.0}),
     "sample_ratio_mismatch": Scenario(
         "Sample ratio mismatch",
-        "A logging bug loses 15% of non-converting control users. The apparent win is an "
-        "artefact and must not be trusted.",
+        "The treatment does nothing, but a logging bug loses 15% of non-converting control "
+        "users, which inflates the control rate. The apparent loss is an artefact and must "
+        "not be trusted.",
         {"lift": 0.0, "srm_drop": 0.15}),
     "novelty_decay": Scenario(
         "Novelty decay",

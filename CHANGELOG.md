@@ -57,6 +57,10 @@ Defects found by the new tests and fixed before release:
 - The planner accepted a binary baseline outside (0, 1) until sample-size time.
 - In the dashboard, choosing another primary metric left the metric type of the previous
   one selected.
+- The built-in sample ratio mismatch scenario described its artefact as an apparent win.
+  Losing non-converting control users inflates the control rate, so the artefact is an
+  apparent loss. The description, the demo text and the screenshot were corrected and a
+  test now ties the description to the data; the data did not change.
 
 First milestone (2026-11-13):
 
