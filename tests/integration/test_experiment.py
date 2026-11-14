@@ -91,6 +91,13 @@ def test_cli_end_to_end(make_df, tmp_path, capsys):
     assert main(["srm", "5000", "5010"]) == 0
 
 
+def test_cli_simulate_markdown_in_process(capsys):
+    assert main(["simulate", "--n-sims", "500"]) == 0
+    out = capsys.readouterr().out
+    assert "false_positive_rate[normal]" in out and "| FAIL |" not in out
+    assert out.count("| PASS |") == 15
+
+
 def test_cli_errors_are_clean(tmp_path, capsys):
     assert main(["analyze", str(tmp_path / "nope.csv"), "--metric", "x",
                  "--metric-type", "binary"]) == 1
