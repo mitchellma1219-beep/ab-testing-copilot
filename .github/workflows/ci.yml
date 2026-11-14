@@ -17,11 +17,30 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev]"
+      - run: pip install -e ".[dev,ui]"
       - run: ruff check .
       - run: mypy
       - run: pytest --cov=ab_testing_copilot --cov-report=term-missing --cov-fail-under=85
-      - name: Smoke-test the installed CLI and the skill script
+      - name: Smoke-test the installed CLI, the skill script and the skill link
         run: |
           abcopilot design --baseline 0.10 --mde 0.02
+          abcopilot sequential --method obrien-fleming --looks 5
           python skills/ab-testing-copilot/scripts/abcopilot.py srm 5000 5010
+          test -L .claude/skills/ab-testing-copilot
+          python .claude/skills/ab-testing-copilot/scripts/abcopilot.py srm 5000 5010
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install into a clean virtual environment
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e ".[dev,ui]"
+      - name: bandit (static security analysis of all shipped Python)
+        run: .venv/bin/bandit -r src app examples skills
+      - name: pip-audit (known vulnerabilities in the installed dependencies)
+        run: .venv/bin/pip-audit --skip-editable
