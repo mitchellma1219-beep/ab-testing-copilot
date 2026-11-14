@@ -3,10 +3,11 @@
 
     python benchmarks/statistical_evidence.py
 
-Three tables: computed group-sequential values next to the published ones, the Monte Carlo
+Four tables: computed group-sequential values next to the published ones, the Monte Carlo
 quantities that tests/statistical/test_feature_monte_carlo.py asserts on (same seeds, same
-generators, so the numbers printed here are the numbers those tests see), and the A/A check
-on independent and on clustered data. Takes about a minute.
+generators, so the numbers printed here are the numbers those tests see), the A/A check on
+independent and on clustered data, and the novelty check run on whole synthetic experiments
+whose effect does not change over time. Takes about a minute and a half.
 """
 
 from __future__ import annotations
@@ -202,10 +203,43 @@ def aa() -> list[str]:
             *[f"| {name} | {r.false_positive_rate:.3f} | {r.verdict} |" for name, r in cases]]
 
 
+def novelty_on_datasets() -> list[str]:
+    """How often the novelty check speaks up when the effect is constant by construction.
+
+    No threshold was fixed for this table in advance: it was added after the default seed of
+    the built-in sample ratio mismatch scenario showed a novelty warning, to tell a chance alarm
+    from a systematic one. The natural bound is the level of the trend test, 0.05.
+    """
+    cfg = ExperimentConfig(primary=MetricSpec(column="converted", type="binary"),
+                           unit_col="user_id", date_col="exposure_date")
+    cases: list[tuple[str, dict[str, float]]] = [
+        ("Constant lift of +1.5 pp", {}),
+        ("No effect", {"lift": 0.0}),
+        ("No effect, 15% of non-converting control users lost (sample ratio mismatch scenario)",
+         {"lift": 0.0, "srm_drop": 0.15}),
+    ]
+    seeds = range(1000, 1300)
+    rows = []
+    for name, kwargs in cases:
+        found = [analyze_experiment(make_experiment(seed=seed, **kwargs), cfg).novelty
+                 for seed in seeds]
+        n = len(found)
+        rows.append((name,
+                     f"{sum(r.p_value < 0.05 for r in found) / n:.3f}",
+                     f"{sum(r.decay_detected for r in found) / n:.3f}",
+                     f"{sum(r.growth_detected for r in found) / n:.3f}",
+                     f"{sum(r.reversal_detected for r in found) / n:.3f}"))
+    return ["| Data (300 datasets of 20,000 users each, seeds 1000 to 1299) | Trend p < 0.05 "
+            "| Decay warning | Growth | Reversal |", "|---|---|---|---|---|",
+            *[f"| {a} | {b} | {c} | {d} | {e} |" for a, b, c, d, e in rows]]
+
+
 def main() -> int:
     for title, table in (("Group-sequential values against published values", published()),
                          ("Monte Carlo checks of the new features", monte_carlo()),
-                         ("A/A check", aa())):
+                         ("A/A check", aa()),
+                         ("Novelty check on whole datasets with a constant effect",
+                          novelty_on_datasets())):
         print(f"## {title}\n")
         print("\n".join(table))
         print()
