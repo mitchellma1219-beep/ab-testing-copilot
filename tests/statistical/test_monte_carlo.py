@@ -13,7 +13,7 @@ def test_validation_suite_all_pass():
     results = sim.run_validation_suite(n_sims=N, seed=123)
     failed = [r.name for r in results if r.passed is False]
     assert not failed, failed
-    assert len(results) == 16
+    assert len(results) == 24
 
 
 @pytest.mark.parametrize("dist", ["normal", "binary", "lognormal"])

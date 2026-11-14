@@ -95,7 +95,7 @@ def test_cli_simulate_markdown_in_process(capsys):
     assert main(["simulate", "--n-sims", "500"]) == 0
     out = capsys.readouterr().out
     assert "false_positive_rate[normal]" in out and "| FAIL |" not in out
-    assert out.count("| PASS |") == 15
+    assert out.count("| PASS |") == 22  # 24 checks, 2 of them informational
 
 
 def test_cli_errors_are_clean(tmp_path, capsys):
@@ -124,7 +124,7 @@ def test_skill_script_runs_from_checkout_without_install(make_df, tmp_path):
                           "json"], capture_output=True, text=True, env=env, cwd=tmp_path,
                          check=False)
     assert res.returncode == 0, res.stderr
-    assert len(json.loads(res.stdout)) == 16
+    assert len(json.loads(res.stdout)) == 24
 
 
 def test_skill_frontmatter_is_valid():

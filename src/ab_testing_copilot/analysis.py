@@ -1,4 +1,4 @@
-"""Effect estimation: proportions, means, bootstrap, CUPED and multiplicity corrections.
+"""Effect estimation: proportions, means, ratios, bootstrap, CUPED, multiplicity corrections.
 
 The ``*_core`` functions are vectorised over NumPy arrays so the Monte Carlo engine
 exercises exactly the same arithmetic as the scalar public API.
@@ -7,17 +7,15 @@ exercises exactly the same arithmetic as the scalar public API.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
 from scipy.stats import norm
 from scipy.stats import t as student_t
 
-from ab_testing_copilot.models import EffectEstimate
+from ab_testing_copilot.models import Correction, EffectEstimate
 
 FloatArray = npt.NDArray[np.float64]
-Correction = Literal["bonferroni", "holm", "benjamini-hochberg"]
 
 
 def _arr(x: object) -> FloatArray:
@@ -37,7 +35,7 @@ def two_proportion_core(
     with np.errstate(divide="ignore", invalid="ignore"):
         z = np.where(se0 > 0, diff / se0, 0.0)
     p = 2 * norm.sf(np.abs(z))
-    crit = norm.ppf(1 - alpha / 2)
+    crit = norm.isf(alpha / 2)
     return diff, diff - crit * se1, diff + crit * se1, z, _arr(p)
 
 
@@ -54,7 +52,7 @@ def welch_core(
         df = np.where(se > 0, (a + b) ** 2 / (a**2 / (nc - 1) + b**2 / (nt - 1)), 1.0)
         tstat = np.where(se > 0, diff / se, np.where(diff == 0, 0.0, np.sign(diff) * np.inf))
     p = _arr(2 * student_t.sf(np.abs(tstat), df))
-    crit = student_t.ppf(1 - alpha / 2, df)
+    crit = student_t.isf(alpha / 2, df)
     return diff, diff - crit * se, diff + crit * se, tstat, p
 
 
@@ -66,7 +64,7 @@ def _relative(
         return None, None, None
     rel = t / c - 1
     se = float(np.sqrt(var_t / c**2 + t**2 * var_c / c**4))
-    crit = float(norm.ppf(1 - alpha / 2))
+    crit = float(norm.isf(alpha / 2))
     return rel, rel - crit * se, rel + crit * se
 
 
@@ -105,7 +103,8 @@ def compare_proportions(
         )
     if pc in (0.0, 1.0) and pt in (0.0, 1.0):
         warnings.append("Both arms have zero variance; the Wald interval is degenerate.")
-    rel, rlo, rhi = _relative(pc, pt, pc * (1 - pc) / n_control, pt * (1 - pt) / n_treatment, alpha)
+    var_c, var_t = pc * (1 - pc) / n_control, pt * (1 - pt) / n_treatment
+    rel, rlo, rhi = _relative(pc, pt, var_c, var_t, alpha)
     return EffectEstimate(
         metric=metric, metric_type="binary",
         method="two-proportion z test (pooled SE); Wald CI (unpooled SE); delta-method relative CI",
@@ -114,6 +113,7 @@ def compare_proportions(
         absolute_effect=float(diff), ci_low=float(lo), ci_high=float(hi),
         relative_effect=rel, rel_ci_low=rlo, rel_ci_high=rhi,
         statistic=float(z), p_value=float(p), alpha=alpha, warnings=warnings,
+        std_error=float(np.sqrt(var_c + var_t)),
     )
 
 
@@ -153,6 +153,87 @@ def compare_means(
         absolute_effect=float(diff), ci_low=float(lo), ci_high=float(hi),
         relative_effect=rel, rel_ci_low=rlo, rel_ci_high=rhi,
         statistic=float(stat), p_value=float(p), alpha=alpha, warnings=warnings,
+        std_error=float(np.sqrt(vc / c.size + vt / t.size)),
+    )
+
+
+def ratio_core(
+    n_c: object, mx_c: object, md_c: object, vx_c: object, vd_c: object, cxd_c: object,
+    n_t: object, mx_t: object, md_t: object, vx_t: object, vd_t: object, cxd_t: object,
+    alpha: float = 0.05,
+) -> tuple[FloatArray, FloatArray, FloatArray, FloatArray, FloatArray, FloatArray, FloatArray]:
+    """Delta-method comparison of two ratio metrics ``sum(x) / sum(d)`` over units.
+
+    Inputs per arm: number of units, unit-level means of numerator and denominator, their
+    sample variances and their sample covariance. Returns
+    ``(diff, ci_low, ci_high, z, p, var_control, var_treatment)``.
+    """
+    nc, mxc, mdc, vxc, vdc, cc = (_arr(a) for a in (n_c, mx_c, md_c, vx_c, vd_c, cxd_c))
+    nt, mxt, mdt, vxt, vdt, ct = (_arr(a) for a in (n_t, mx_t, md_t, vx_t, vd_t, cxd_t))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        rc, rt = mxc / mdc, mxt / mdt
+        # Var(x_bar / d_bar) ~ (var_x - 2 R cov_xd + R^2 var_d) / (n * d_bar^2)
+        var_c = np.maximum(vxc - 2 * rc * cc + rc**2 * vdc, 0.0) / (nc * mdc**2)
+        var_t = np.maximum(vxt - 2 * rt * ct + rt**2 * vdt, 0.0) / (nt * mdt**2)
+        diff = rt - rc
+        se = np.sqrt(var_c + var_t)
+        z = np.where(se > 0, diff / se, np.where(diff == 0, 0.0, np.sign(diff) * np.inf))
+    p = _arr(2 * norm.sf(np.abs(z)))
+    crit = norm.isf(alpha / 2)
+    return diff, diff - crit * se, diff + crit * se, _arr(z), p, var_c, var_t
+
+
+def compare_ratios(
+    numerator_control: Sequence[float] | npt.NDArray[np.generic],
+    denominator_control: Sequence[float] | npt.NDArray[np.generic],
+    numerator_treatment: Sequence[float] | npt.NDArray[np.generic],
+    denominator_treatment: Sequence[float] | npt.NDArray[np.generic],
+    alpha: float = 0.05,
+    metric: str = "ratio",
+) -> EffectEstimate:
+    """Ratio metric ``sum(numerator) / sum(denominator)`` with a delta-method standard error.
+
+    Each array holds one value per randomised unit (for example clicks and impressions per
+    user), so the units stay independent even though the metric is defined on finer rows.
+    Uses a normal reference distribution (large-sample result).
+    """
+    if not 0 < alpha < 1:
+        raise ValueError("alpha must be in (0, 1)")
+    xc, dc = _clean(numerator_control, "numerator_control"), _clean(
+        denominator_control, "denominator_control")
+    xt, dt = _clean(numerator_treatment, "numerator_treatment"), _clean(
+        denominator_treatment, "denominator_treatment")
+    if xc.size != dc.size or xt.size != dt.size:
+        raise ValueError("numerator and denominator must have the same length within each arm")
+    if (dc < 0).any() or (dt < 0).any():
+        raise ValueError("denominator values must be >= 0")
+    if not (dc.sum() > 0 and dt.sum() > 0):
+        raise ValueError("the denominator sums to zero in an arm; the ratio is undefined")
+
+    def moments(x: FloatArray, d: FloatArray) -> tuple[float, float, float, float, float]:
+        cov = np.cov(x, d, ddof=1)
+        return float(x.mean()), float(d.mean()), float(cov[0, 0]), float(cov[1, 1]), float(
+            cov[0, 1])
+
+    c_m, t_m = moments(xc, dc), moments(xt, dt)
+    diff, lo, hi, z, p, var_c, var_t = ratio_core(xc.size, *c_m, xt.size, *t_m, alpha=alpha)
+    rc, rt = c_m[0] / c_m[1], t_m[0] / t_m[1]
+    warnings: list[str] = []
+    if float(var_c) == 0 and float(var_t) == 0:
+        warnings.append("Both arms have zero variance; the test is not meaningful.")
+    if min(xc.size, xt.size) < 30:
+        warnings.append(
+            "Fewer than 30 units in an arm: the delta method is a large-sample approximation.")
+    rel, rlo, rhi = _relative(rc, rt, float(var_c), float(var_t), alpha)
+    return EffectEstimate(
+        metric=metric, metric_type="ratio",
+        method="delta-method z test on unit-level sums; delta-method relative CI",
+        n_control=int(xc.size), n_treatment=int(xt.size),
+        control_value=rc, treatment_value=rt,
+        absolute_effect=float(diff), ci_low=float(lo), ci_high=float(hi),
+        relative_effect=rel, rel_ci_low=rlo, rel_ci_high=rhi,
+        statistic=float(z), p_value=float(p), alpha=alpha, warnings=warnings,
+        std_error=float(np.sqrt(var_c + var_t)),
     )
 
 
