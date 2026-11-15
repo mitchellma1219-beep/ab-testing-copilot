@@ -28,7 +28,7 @@ wrong answer.
 ## Install
 
 ```bash
-git clone <repo-url> && cd ab-testing-copilot
+git clone https://github.com/mitchellma1219-beep/ab-testing-copilot.git && cd ab-testing-copilot
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev,ui]"      # ".[dev]" without the dashboard, "." for the library alone
 ```
