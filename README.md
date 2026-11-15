@@ -5,8 +5,8 @@ valid, analyse them and decide. It ships as a Python package, a command-line too
 Streamlit dashboard and an Agent Skill, and it prefers "Inconclusive" over a confident
 wrong answer.
 
-> **Status:** unreleased; the work is on pull request #1. What has and has not been
-> verified is in [QUALITY_REPORT.md](QUALITY_REPORT.md). The project was specified,
+> **Status:** v0.1.0, merged to `main` (pull request #1) and public; not published to PyPI.
+> What has and has not been verified is in [QUALITY_REPORT.md](QUALITY_REPORT.md). The project was specified,
 > directed and verified by its owner and implemented with an AI coding agent; see
 > "How this was built" in [PORTFOLIO.md](PORTFOLIO.md).
 
