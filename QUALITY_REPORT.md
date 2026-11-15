@@ -380,13 +380,13 @@ Nothing had to be fixed or suppressed. Details and the design measures are in
   stop, no anytime-valid inference, no CUPED or sample-size formula for ratio metrics, one
   treatment against one control, missing values dropped under a missing-completely-at-random
   assumption. Small-sample behaviour of the sequential rule was not simulated.
-- **Not on `main`.** All of this is on pull request #1; `main` holds the auto-generated
-  README.
+- **Merged.** Pull request #1 was merged to `main` on 2026-11-15 and the repository was made
+  public; the numbers in this report were produced against that pull-request code.
 
 ## Release recommendation
 
 **Do not publish yet.** The package is tested in five layers, checked against published
 values and independent implementations, and green in CI on three Python versions with the
 security audit. The open gates are the ones listed above: an independent review, a person
-operating the dashboard, the skill loaded in Claude Code, a secret scan, the merge and the
-owner's decision about the initial commit.
+operating the dashboard, the skill loaded in Claude Code, a secret scan and the owner's
+decision about the initial commit.
